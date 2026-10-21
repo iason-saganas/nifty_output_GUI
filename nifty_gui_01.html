@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIFTy Monitor 01</title>
+<style>
+  :root { --bg:#0f1115; --panel:#161922; --panel2:#1d2230; --line:#232838; --fg:#d6dae3; --dim:#7b8394;
+          --live:#3ecf8e; --done:#6ea8fe; --warn:#f0b429; --bad:#f2555a;
+          --linear:#6ea8fe; --nonlinear:#c08cff; --kl:#f5a35c; --global:#3ecf8e; --other:#7b8394; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--fg); display:flex; flex-direction:column;
+         font:12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  header { display:flex; gap:14px; align-items:center; padding:8px 14px; flex-wrap:wrap;
+           background:var(--panel); border-bottom:1px solid var(--line); }
+  header h1 { font-size:14px; margin:0; font-weight:600; }
+  header h1 .ver { color:var(--dim); font-weight:400; }
+  .status { display:flex; align-items:center; gap:6px; color:var(--dim); }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); }
+  .live .dot { background:var(--live); box-shadow:0 0 6px var(--live); }
+  .done .dot { background:var(--done); }
+  .warn .dot { background:var(--warn); }
+  .spacer { flex:1; }
+  button { font:inherit; color:var(--fg); background:var(--panel2); border:1px solid var(--line);
+           border-radius:4px; padding:2px 8px; cursor:pointer; }
+  button.on { border-color:var(--global); color:var(--global); }
+  #globals { display:flex; gap:6px; flex-wrap:wrap; }
+  main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); }
+  .col { display:flex; flex-direction:column; min-height:0; background:var(--bg); }
+  .pane { display:flex; flex-direction:column; min-height:0; flex:1; }
+  .pane + .pane { border-top:1px solid var(--line); }
+  #pane-linear { flex:3; }
+  #pane-nonlinear { flex:2; }
+  .pane.collapsed, #pane-nonlinear.collapsed { flex:0 0 auto; }
+  .pane.collapsed .body, .pane.collapsed .viz { display:none; }
+  .pane h2 { margin:0; padding:6px 12px; font-size:12px; font-weight:600; display:flex; gap:10px; align-items:center;
+             background:var(--panel); border-bottom:1px solid var(--line); }
+  .pane h2 .tag { width:10px; height:10px; border-radius:2px; background:var(--c); }
+  .pane h2 .meta { color:var(--dim); font-weight:400; }
+  .pane h2 .vt { margin-left:auto; font-size:11px; padding:0 6px; font-weight:400; }
+  .body { flex:1; overflow:auto; padding:4px 0; }
+  .empty { color:var(--dim); padding:8px 12px; font-style:italic; }
+  .sep { color:var(--dim); padding:6px 12px 2px; }
+  .blk { border-left:3px solid var(--c); margin:2px 8px; background:var(--panel); }
+  .blk.hl { background:var(--panel2); outline:1px solid var(--c); }
+  .blk > .hd { padding:3px 8px; cursor:pointer; display:flex; gap:10px; white-space:nowrap; overflow:hidden; }
+  .blk > .hd:hover { background:var(--panel2); }
+  .hd .t { font-weight:600; }
+  .hd .m { color:var(--dim); overflow:hidden; text-overflow:ellipsis; }
+  .ok { color:var(--live); } .run { color:var(--warn); } .no { color:var(--bad); }
+  .ln { white-space:pre; padding:0 8px 0 20px; color:#aeb4c2; tab-size:2; }
+  .ln.sub { padding-left:34px; color:#8a91a1; }
+  .body .ln, .body .hd { font-size:11px; }
+  .prov { opacity:.7; }
+  .prov .hd .t::after { content:" ?"; color:var(--dim); }
+  #rawwrap { display:none; height:35vh; border-top:1px solid var(--line); }
+  #rawwrap.open { display:flex; }
+  #raw { flex:1; overflow:auto; padding:4px 12px; }
+  #raw .ln { padding:0; }
+  #raw .r { display:inline-block; width:10ch; color:var(--c); }
+  body.drop { outline:2px dashed var(--global); outline-offset:-6px; }
+
+  /* ---- plots ---- */
+  .viz { flex:none; padding:6px 10px 8px; border-bottom:1px solid var(--line); }
+  .viz.hidden, .viz.off { display:none; }
+  .tools { display:flex; gap:10px; align-items:center; color:var(--dim); min-height:20px; }
+  .tools .info { color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px; }
+  .ptitle { color:var(--dim); font-size:11px; margin:4px 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+  .grid2 > div { min-width:0; }
+  svg { display:block; }
+  svg text { fill:var(--dim); font-size:10px; font-family:inherit; }
+  svg .grid { stroke:var(--line); stroke-width:1; }
+  svg .band { fill:#ffffff; opacity:.035; }
+  svg .tgt { stroke:var(--warn); stroke-width:1.2; stroke-dasharray:5 4; }
+  svg text.tgtl { fill:var(--warn); }
+  svg .s .l { fill:none; stroke:var(--c); stroke-width:1.2; opacity:.5; }
+  svg .s.cur .l { stroke-width:2.2; opacity:1; }
+  svg .s.hl .l { stroke:#ffffff; stroke-width:2.4; opacity:1; }
+  svg .s.ghost .l { stroke:var(--dim); opacity:.3; stroke-dasharray:3 3; }
+  svg .hit { fill:none; stroke:transparent; stroke-width:10; pointer-events:stroke; cursor:pointer; }
+  svg .pt { fill:var(--c); }
+  svg .m-ok { fill:var(--live); }
+  svg .m-run { fill:var(--warn); }
+  svg .m-stop { fill:none; stroke:var(--bad); stroke-width:1.5; }
+  svg .mk { fill:var(--c); cursor:pointer; }
+  svg .mk.ok { fill:var(--live); }
+  svg .mk.run { fill:var(--warn); }
+  svg .mk.stop { fill:var(--bad); }
+  svg .mk.hl { fill:#ffffff; }
+  svg .ring-short { fill:none; stroke:var(--warn); stroke-width:1.5; }
+  svg .ring-reset { fill:none; stroke:var(--bad); stroke-width:2; }
+  svg .bar { fill:var(--c); opacity:.75; cursor:pointer; }
+  svg .bar.est { opacity:.35; }
+  svg .bar.stop { fill:var(--bad); }
+  svg .bar.run { fill:var(--warn); }
+  svg .bar.hl { fill:#ffffff; opacity:1; }
+  @media (max-width:800px) { main { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>NIFTy monitor <span class="ver">01</span></h1>
+  <div id="status" class="status"><span class="dot"></span><span id="stxt">connecting…</span></div>
+  <span id="count" class="status">0 lines</span>
+  <div id="globals"></div>
+  <span class="spacer"></span>
+  <button id="rawbtn">raw log</button>
+</header>
+<main>
+  <div class="col">
+    <section class="pane" id="pane-linear" style="--c:var(--linear)">
+      <h2><span class="tag"></span>Linear sampling <span class="meta" id="m-linear"></span><button class="vt" data-v="lin">plots</button></h2>
+      <div class="viz hidden" id="lin-viz">
+        <div class="tools"><span class="info" id="lin-info"></span></div>
+        <div id="lin-main"></div>
+        <div id="lin-res"></div>
+        <div class="ptitle">CG iterations per sample</div>
+        <div id="lin-bars"></div>
+      </div>
+      <div class="body" id="p-linear"></div>
+    </section>
+    <section class="pane" id="pane-nonlinear" style="--c:var(--nonlinear)">
+      <h2><span class="tag"></span>Nonlinear sampling <span class="meta" id="m-nonlinear"></span><button class="vt" data-v="nl">plots</button></h2>
+      <div class="viz hidden" id="nl-viz">
+        <div class="tools"><span class="info" id="nl-info"></span></div>
+        <div class="grid2">
+          <div><div class="ptitle">ΔE per Newton step · dashed: AbsDelta</div><div id="nl-de"></div></div>
+          <div><div class="ptitle">step length |↘| · dashed: xtol</div><div id="nl-dn"></div></div>
+          <div><div class="ptitle" id="nl-cgt"></div><div id="nl-cg"></div></div>
+          <div><div class="ptitle">inner CG iterations per Newton step</div><div id="nl-cgn"></div></div>
+        </div>
+        <div class="ptitle">Newton steps per sample</div>
+        <div id="nl-sps"></div>
+      </div>
+      <div class="body" id="p-nonlinear"></div>
+    </section>
+  </div>
+  <div class="col">
+    <section class="pane" id="pane-kl" style="--c:var(--kl)">
+      <h2><span class="tag"></span>KL minimization <span class="meta" id="m-kl"></span><button class="vt" data-v="kl">plots</button></h2>
+      <div class="viz hidden" id="kl-viz">
+        <div class="tools"><span class="info" id="kl-info"></span></div>
+        <div class="grid2">
+          <div><div class="ptitle">ΔE per Newton step · dashed: AbsDelta</div><div id="kl-de"></div></div>
+          <div><div class="ptitle">step length |↘| · dashed: xtol</div><div id="kl-dn"></div></div>
+          <div><div class="ptitle" id="kl-cgt"></div><div id="kl-cg"></div></div>
+          <div><div class="ptitle">inner CG iterations per Newton step</div><div id="kl-cgn"></div></div>
+        </div>
+      </div>
+      <div class="body" id="p-kl"></div>
+    </section>
+  </div>
+</main>
+<div id="rawwrap"><div id="raw"></div></div>
+
+<script>
+// ==== PURE START (no DOM access below until PURE END) ====
+// =====================================================================
+// PARSER: turns log lines into global iterations / runs / Newton steps.
+// =====================================================================
+const RE_OKL  = /^\s*OPTIMIZE_KL:\s*(.*)$/;
+const RE_STEP = /^\s*(.+?):\s*((?:→|GradScale):.*)$/;
+const RE_ITER = /^\s*(.+?):\s*Iteration\s+(\d+)\s*(.*)$/;
+const KEYMAP = {'⛰':'E','E':'E','Δ⛰':'dE','ΔE':'dE','|∇|':'norm','Norm':'norm','Resnorm':'resnorm',
+  '→':'gradscale','GradScale':'gradscale','↺':'reset','LineSearchReset':'reset',
+  '#∇²':'nhess','#HessEval':'nhess','|↘|':'descnorm','DescentNorm':'descnorm','xtol':'xtol','AbsDelta':'absdelta'};
+function num(v){ if(v==='inf') return Infinity; if(v==='True') return true; if(v==='False') return false;
+  const x=parseFloat(v); return isNaN(x)?v:x; }
+function fields(s, isStep){
+  const f={}; let arrows=0;
+  for(const tok of (s||'').trim().split(/\s+/)){
+    const i=tok.indexOf(':'); if(i<=0) continue;
+    const k=tok.slice(0,i), v=tok.slice(i+1); let key;
+    if(k==='➽') key = arrows++===0 ? 'absdelta' : 'resnorm';
+    else if(k==='🞋') key = isStep ? 'xtol' : 'absdelta';
+    else key = KEYMAP[k] || k;
+    f[key]=num(v);
+  }
+  return f;
+}
+// A Newton step's inner CG solves for the step from the current point, so it starts at E = 0.
+const looksInner = r => r.points.length>0 && r.points[0].E===0;
+class Model {
+  constructor(){ this.globals=[]; this.lines=[]; this.cgMem=new Map(); this.ncgMem=new Map();
+    this.last=null; this.activeRun=null; this.ended=false; this.version=0; this.nRuns=0; }
+  newGlobal(n){ const g={n, idx:this.globals.length, runs:[], ncgOrder:[], ncgCount:{}, curCg:new Map(),
+      curNcg:new Map(), report:[], E:null, done:false};
+    this.globals.push(g); this.last=null; return g; }
+  ensureG(){ let g=this.globals.at(-1); if(!g||g.done) g=this.newGlobal((g?g.n:0)+1); return g; }
+  push(text){
+    const rec={i:this.lines.length, text, owner:null, kind:'other', g:null}; let m;
+    this.lines.push(rec); this.version++;
+    if((m=RE_OKL.exec(text)))  { rec.kind='global'; this.okl(m[1].trim(), rec); return rec; }
+    if((m=RE_STEP.exec(text))) { const g=this.ensureG(); rec.g=g; this.step(g, m[1].trim(), fields(m[2],true), rec); return rec; }
+    if((m=RE_ITER.exec(text))) { const g=this.ensureG(); rec.g=g; this.iter(g, m[1].trim(), +m[2], fields(m[3],false), rec); return rec; }
+    const g=this.globals.at(-1)||this.newGlobal(1); rec.g=g;
+    if(g.done){ rec.kind='global'; g.report.push(rec); }
+    return rec;
+  }
+  okl(body, rec){
+    let m;
+    if((m=/^Starting\s+(\d+)/.exec(body))){
+      const prev=this.globals.at(-1); let g;
+      if(prev && !prev.done && !prev.runs.length && !prev.report.length){ g=prev; g.n=+m[1]; }
+      else g=this.newGlobal(+m[1]);
+      rec.g=g; return;
+    }
+    const g=this.globals.at(-1)||this.newGlobal(1); rec.g=g;
+    if((m=/^Iteration\s+(\d+)\s*(.*)$/.exec(body))){
+      this.closeCg(g, null); g.E=fields(m[2],false).E; g.done=true; this.finalize(g); this.last=null; return;
+    }
+    g.report.push(rec);
+  }
+  closeCg(g, except){ for(const r of g.runs) if(r.solver==='cg' && !r.parentStep && r!==except) r.resolved=true; }
+  newCg(g,name){ const m=this; const r={solver:'cg', name, g, points:[], recs:[], parentStep:null, resolved:false, id:this.nRuns++,
+      get role(){ if(this.parentStep) return this.parentStep.run.role;
+                  if(this.resolved) return 'linear';
+                  const mem=m.cgMem.get(this.name); if(mem) return mem;
+                  if(!looksInner(this)) return 'linear';
+                  // an inner CG whose Newton step hasn't reported yet: best guess is the most recent Newton-CG
+                  for(let i=g.runs.length-1; i>=0; i--) if(g.runs[i].solver==='ncg') return g.runs[i].role;
+                  return 'kl'; },
+      get provisional(){ return !this.parentStep && !this.resolved && !m.cgMem.get(this.name); } };
+    g.runs.push(r); g.curCg.set(name,r); return r; }
+  newNcg(g,name){ const m=this; const r={solver:'ncg', name, g, steps:[], forced:null, id:this.nRuns++,
+      get role(){ if(this.forced) return this.forced;
+                  if(m.ncgMem.has(this.name)) return m.ncgMem.get(this.name);
+                  if(g.ncgCount[this.name]>=2) return 'nonlinear';
+                  return g.ncgOrder.indexOf(this.name) < g.ncgOrder.length-1 ? 'nonlinear' : 'kl'; },
+      get provisional(){ return !this.forced && !m.ncgMem.has(this.name); } };
+    g.runs.push(r); g.curNcg.set(name,r); g.ncgCount[name]=(g.ncgCount[name]||0)+1;
+    if(!g.ncgOrder.includes(name)) g.ncgOrder.push(name); return r; }
+  step(g, name, f, rec){
+    const L=this.last;
+    const inner = (L && L.type==='cg' && !L.run.parentStep && looksInner(L.run)) ? L.run : null;
+    this.closeCg(g, inner);
+    const run = g.curNcg.get(name) || this.newNcg(g,name);
+    const step = {run, f, iter:null, inner, recs:[rec], get role(){ return this.run.role; }};
+    if(inner) inner.parentStep=step;
+    run.steps.push(step); rec.owner=step; this.last={type:'step', name, step}; this.activeRun=run;
+  }
+  iter(g, name, it, f, rec){
+    const L=this.last;
+    if(L && L.type==='step' && L.name===name && !L.step.iter){      // Newton iteration line
+      const step=L.step, run=step.run, prev=run.steps.length>1 ? run.steps.at(-2).iter : null;
+      if(prev && it<=prev.it){ run.steps.pop(); const nr=this.newNcg(g,name); nr.steps.push(step); step.run=nr; }
+      step.iter={it, ...f}; step.recs.push(rec); rec.owner=step;
+      this.last={type:'ncgiter', name}; this.activeRun=step.run; return;
+    }
+    let run=g.curCg.get(name);                                       // CG iteration line
+    const lastRun = (L && L.type==='cg') ? L.run : null;
+    if(!run || run.parentStep || run.resolved || it===0 || it<=run.points.at(-1).it) run=this.newCg(g,name);
+    if(lastRun && lastRun!==run && !lastRun.parentStep) lastRun.resolved=true;
+    run.points.push({it, ...f}); run.recs.push(rec); rec.owner=run;
+    this.last={type:'cg', run}; this.activeRun=run;
+  }
+  finalize(g){
+    const ncgs=g.runs.filter(r=>r.solver==='ncg');
+    if(ncgs.length){
+      const kl=ncgs.at(-1); kl.forced='kl'; for(const r of ncgs) if(r!==kl) r.forced='nonlinear';
+      if(!ncgs.some(r=>r!==kl && r.name===kl.name)){
+        this.ncgMem.set(kl.name,'kl'); for(const r of ncgs) if(r!==kl) this.ncgMem.set(r.name,'nonlinear'); }
+    }
+    for(const r of g.runs) if(r.solver==='cg'){
+      const role=r.role, prev=this.cgMem.get(r.name);
+      if(prev===undefined) this.cgMem.set(r.name, role); else if(prev!==role) this.cgMem.set(r.name, null); }
+  }
+}
+
+// ---- small helpers ----
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = x => x==null ? '–' : x===Infinity ? '∞' : typeof x==='number' ? (x===0 ? '0' : x.toExponential(2)) : String(x);
+const lt = (a,b) => typeof a==='number' && typeof b==='number' && a < b;
+const cgOk = p => !!p && (lt(p.dE,p.absdelta) || lt(p.norm,p.resnorm));
+const stepOk = s => !!s && !!s.iter && (lt(s.iter.dE,s.iter.absdelta) || lt(s.f.descnorm,s.f.xtol));
+
+// =====================================================================
+// PLOTTER: pure functions, data in, SVG string out.
+// Interactive elements carry data-h="<key>", the key of the text block they belong to.
+// =====================================================================
+const r1 = v => Math.round(v*10)/10;
+function sLin(d0,d1,r0,r1_){ const k=(r1_-r0)/((d1-d0)||1); return v=>r0+(v-d0)*k; }
+function sLog(d0,d1,r0,r1_){ const a=Math.log10(d0), k=(r1_-r0)/((Math.log10(d1)-a)||1); return v=>r0+(Math.log10(v)-a)*k; }
+function niceStep(span, n){ const raw=span/n, p=10**Math.floor(Math.log10(raw)), f=raw/p; return (f<1.5?1:f<3.5?2:f<7.5?5:10)*p; }
+function ticksLin(lo, hi, n, intOnly){
+  let s=niceStep((hi-lo)||1, n); if(intOnly) s=Math.max(1, Math.round(s));
+  const out=[]; for(let v=Math.ceil(lo/s)*s; v<=hi+1e-9*s; v+=s) out.push(+v.toPrecision(12)); return out; }
+const svgOpen = (w,h) => '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
+const svgEmpty = (w,h,msg) => svgOpen(w,h)+'<text x="'+(w/2)+'" y="'+(h/2)+'" text-anchor="middle">'+msg+'</text></svg>';
+const okPt = ([x,y]) => isFinite(x) && y>0 && isFinite(y);
+
+// series: [{key|null, cls, pts:[[x,y]], end:'ok'|'run'|'stop'|null, marks?:[{x,y,key,cls,ring}]}]
+// linear x, log y.  hlines: [{y,label}] dashed targets.
+// o: {w, h, xdom?:[lo,hi], bands?:[{x0,x1}], empty?}
+function linePlot(series, hlines, o){
+  const W=o.w, H=o.h, P={l:46, r:12, t:8, b:20};
+  const xs=[], ys=[];
+  for(const s of series){
+    for(const p of s.pts) if(okPt(p)){ xs.push(p[0]); ys.push(p[1]); }
+    for(const m of (s.marks||[])) if(okPt([m.x,m.y])){ xs.push(m.x); ys.push(m.y); }
+  }
+  if(!xs.length) return svgEmpty(W, H, o.empty||'waiting for data…');
+  for(const h of hlines) if(h.y>0 && isFinite(h.y)) ys.push(h.y);
+  const [x0,x1] = o.xdom || [1, Math.max(2, ...xs)];
+  let a=Math.floor(Math.log10(Math.min(...ys))), b=Math.ceil(Math.log10(Math.max(...ys))); if(b<=a) b=a+1;
+  const fx = sLin(x0, x1, P.l, W-P.r);
+  const fy = sLog(10**a, 10**b, H-P.b, P.t);
+  let g='';
+  for(const bd of (o.bands||[])){
+    const xa=r1(fx(bd.x0-0.5)), xb=r1(fx(bd.x1+0.5));
+    g+='<rect class="band" x="'+xa+'" y="'+P.t+'" width="'+r1(xb-xa)+'" height="'+(H-P.b-P.t)+'"/>';
+  }
+  const every = b-a>8 ? 2 : 1;
+  for(let k=a; k<=b; k++){
+    const y=r1(fy(10**k));
+    g+='<line class="grid" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/>';
+    if((k-a)%every===0) g+='<text x="'+(P.l-4)+'" y="'+(y+3)+'" text-anchor="end">1e'+k+'</text>';
+  }
+  for(const t of ticksLin(Math.ceil(x0), Math.floor(x1), 6, true)){
+    const x=r1(fx(t));
+    g+='<line class="grid" x1="'+x+'" x2="'+x+'" y1="'+P.t+'" y2="'+(H-P.b)+'"/>'
+     + '<text x="'+x+'" y="'+(H-P.b+12)+'" text-anchor="middle">'+t+'</text>';
+  }
+  for(const h of hlines){
+    if(!(h.y>0 && isFinite(h.y))) continue;
+    const y=r1(fy(h.y));
+    g+='<line class="tgt" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/>'
+     + '<text class="tgtl" x="'+(W-P.r-2)+'" y="'+(y-3)+'" text-anchor="end">'+h.label+'</text>';
+  }
+  for(const s of series){
+    const pts=s.pts.filter(okPt); if(!pts.length) continue;
+    const d='M'+pts.map(([x,y])=>r1(fx(x))+','+r1(fy(y))).join('L');
+    const X=r1(fx(pts.at(-1)[0])), Y=r1(fy(pts.at(-1)[1]));
+    let mk='';
+    if(s.end==='ok')   mk='<circle class="m-ok" cx="'+X+'" cy="'+Y+'" r="3"/>';
+    if(s.end==='run')  mk='<circle class="m-run" cx="'+X+'" cy="'+Y+'" r="3.5"/>';
+    if(s.end==='stop') mk='<rect class="m-stop" x="'+(X-3)+'" y="'+(Y-3)+'" width="6" height="6"/>';
+    const dots = (!s.marks && /cur|hl/.test(s.cls)) ? pts.map(([x,y])=>'<circle class="pt" cx="'+r1(fx(x))+'" cy="'+r1(fy(y))+'" r="1.8"/>').join('') : '';
+    const marks = (s.marks||[]).filter(m=>okPt([m.x,m.y])).map(m=>{
+      const mx=r1(fx(m.x)), my=r1(fy(m.y));
+      return (m.ring ? '<circle class="ring-'+m.ring+'" cx="'+mx+'" cy="'+my+'" r="6"/>' : '')
+           + '<circle class="mk '+m.cls+'" data-h="'+m.key+'" cx="'+mx+'" cy="'+my+'" r="3"/>'; }).join('');
+    const live = s.key!=null;
+    g+='<g class="s '+s.cls+'"'+(live?' data-h="'+s.key+'"':'')+'>'+(live?'<path class="hit" d="'+d+'"/>':'')
+     + '<path class="l" d="'+d+'"/>'+dots+mk+marks+'</g>';
+  }
+  return svgOpen(W,H)+g+'</svg>';
+}
+
+// items: [{key, v, cls, x?}] -> bars, linear y from 0.
+// Without o.xdom: one slot per item.  With o.xdom: bar centred at item.x (aligns with a linePlot of the same xdom).
+function barPlot(items, o){
+  const W=o.w, H=o.h, P={l:46, r:12, t:6, b:16};
+  if(!items.length) return svgEmpty(W, H, '–');
+  const vmax=Math.max(1, ...items.map(i=>i.v||0)), n=items.length;
+  const fy=sLin(0, vmax, H-P.b, P.t);
+  let cx, bw;
+  if(o.xdom){ const fx=sLin(o.xdom[0], o.xdom[1], P.l, W-P.r); cx=(it)=>fx(it.x); bw=Math.max(1, Math.min(24, (fx(1)-fx(0))*0.7)); }
+  else { const slot=(W-P.l-P.r)/n; cx=(it,i)=>P.l+slot*(i+0.5); bw=Math.max(1, slot*0.8); }
+  let g='';
+  if(o.xdom) for(const bd of (o.bands||[])){
+    const fx=sLin(o.xdom[0], o.xdom[1], P.l, W-P.r), xa=r1(fx(bd.x0-0.5)), xb=r1(fx(bd.x1+0.5));
+    g+='<rect class="band" x="'+xa+'" y="'+P.t+'" width="'+r1(xb-xa)+'" height="'+(H-P.b-P.t)+'"/>';
+  }
+  for(const t of ticksLin(0, vmax, 3, true)){
+    const y=r1(fy(t));
+    g+='<line class="grid" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/>'
+     + '<text x="'+(P.l-4)+'" y="'+(y+3)+'" text-anchor="end">'+t+'</text>';
+  }
+  items.forEach((it,i)=>{
+    const y=fy(it.v||0), x=cx(it,i)-bw/2;
+    g+='<rect class="bar '+it.cls+'" data-h="'+it.key+'" x="'+r1(x)+'" y="'+r1(y)+'" width="'
+     + r1(bw)+'" height="'+r1(Math.max(1, H-P.b-y))+'"/>';
+  });
+  if(!o.xdom) g+='<text x="'+P.l+'" y="'+(H-3)+'">1</text><text x="'+(W-P.r)+'" y="'+(H-3)+'" text-anchor="end">'+n+'</text>';
+  return svgOpen(W,H)+g+'</svg>';
+}
+
+// ---- Newton-CG panels (nonlinear sampling and KL share this) ----
+const flagOf = st => st.f.reset===true ? 'reset' : (typeof st.f.gradscale==='number' && st.f.gradscale<1 ? 'short' : null);
+function flagText(st){
+  const E = st.iter && typeof st.iter.E==='number' ? Math.abs(st.iter.E) : null, dE = st.iter ? st.iter.dE : null;
+  const nearConv = E!=null && typeof dE==='number' && dE < 1e-7*Math.max(E,1);
+  if(st.f.reset===true) return nearConv
+    ? ' · ↺ reset near convergence: likely floating-point precision, usually harmless'
+    : ' · ↺ line-search reset: the Newton direction failed even for tiny steps, the local curvature model is poor here';
+  if(typeof st.f.gradscale==='number' && st.f.gradscale<1)
+    return ' · → '+st.f.gradscale+': line search shortened the step, the quadratic model overshot';
+  return '';
+}
+const ratioOf = p => (typeof p.norm==='number' && p.resnorm>0) ? p.norm/p.resnorm
+                   : (p.absdelta>0 && typeof p.dE==='number' && isFinite(p.dE)) ? p.dE/p.absdelta : undefined;
+
+// runs: Newton-CG runs of one process, in order. pend: inner CGs still running (no Newton step line yet).
+// o: {stepKey(run,j), runKey(run), perSample, ghosts, hk, w, w2, h:{main,cg,bars,sps}, defaultInfo}
+function ncgPlots(runs, pend, active, o){
+  const hk=o.hk, steps=[], bands=[]; let x=0, short=0, reset=0;
+  runs.forEach((r,ri)=>{
+    const x0=x+1; let prevH=0;
+    r.steps.forEach((st,j)=>{
+      x++;
+      const nh = typeof st.f.nhess==='number' ? st.f.nhess : null;
+      const cgIts = st.inner ? st.inner.points.at(-1).it : (nh!=null ? nh-prevH : null);   // #∇² is cumulative per run
+      if(nh!=null) prevH=nh;
+      const fl=flagOf(st); if(fl==='short') short++; if(fl==='reset') reset++;
+      steps.push({r, j, st, x, key:o.stepKey(r,j), cgIts, est:!st.inner, fl});
+    });
+    if(ri%2===1 && x>=x0) bands.push({x0, x1:x});
+  });
+  const S=x, xdom=[0.5, Math.max(1, S+(pend.length?1:0))+0.5];
+  const runHl = r => { const k=o.runKey(r); return k!=null && k===hk; };
+  const mkSeries = val => {
+    const ser=(o.ghosts||[]).map(gr=>({key:null, cls:'ghost', pts:gr.steps.map((st,j)=>[j+1, val(st)]), end:null}));
+    const ord=runs.slice().sort((a,b)=>(runHl(a)-runHl(b)) || ((a===active)-(b===active)));
+    for(const r of ord){
+      const ss=steps.filter(s=>s.r===r);
+      ser.push({key:o.runKey(r), cls:[r===active?'cur':'', runHl(r)?'hl':''].join(' ').trim(),
+        pts:ss.map(s=>[s.x, val(s.st)]), end:null,
+        marks:ss.map((s,k)=>{
+          const last=k===ss.length-1;
+          const state = stepOk(s.st) ? 'ok' : (last && r===active) ? 'run' : last ? 'stop' : '';
+          return {x:s.x, y:val(s.st), key:s.key, cls:(state+(s.key===hk?' hl':'')).trim(), ring:s.fl}; })});
+    }
+    return ser;
+  };
+  const lastPos = f => { for(let i=steps.length-1; i>=0; i--){ const v=f(steps[i].st); if(v>0 && isFinite(v)) return v; } return null; };
+  const ad=lastPos(st=>st.iter && st.iter.absdelta), xt=lastPos(st=>st.f.xtol);
+  const de=linePlot(mkSeries(st=>st.iter ? st.iter.dE : undefined), ad ? [{y:ad, label:'AbsDelta '+fmt(ad)}] : [],
+                    {w:o.w2, h:o.h.main, xdom, bands, empty:'no Newton step finished yet'});
+  const dn=linePlot(mkSeries(st=>st.f.descnorm), xt ? [{y:xt, label:'xtol '+fmt(xt)}] : [],
+                    {w:o.w2, h:o.h.main, xdom, bands, empty:'no Newton step yet'});
+  // inner CG convergence, normalised to its own target so all solves share the line at 1
+  const cgs=[...steps.filter(s=>s.st.inner).map(s=>({run:s.st.inner, key:s.key, cur:false})),
+             ...pend.map(c=>({run:c, key:'c'+c.id, cur:true}))];
+  const byNorm = cgs.some(c=>c.run.points.some(p=>typeof p.norm==='number' && p.resnorm>0));
+  let maxIt=1; for(const c of cgs) maxIt=Math.max(maxIt, c.run.points.at(-1).it);
+  cgs.sort((a,b)=>((a.key===hk)-(b.key===hk)) || (a.cur-b.cur));
+  const cgSer=cgs.map(c=>({key:c.key, cls:[c.cur?'cur':'', c.key===hk?'hl':''].join(' ').trim(),
+      pts:c.run.points.map(p=>[p.it, ratioOf(p)]), end: cgOk(c.run.points.at(-1)) ? 'ok' : c.cur ? 'run' : 'stop'}));
+  const cg = cgs.length ? linePlot(cgSer, [{y:1, label:'target'}], {w:o.w2, h:o.h.cg, xdom:[0, maxIt]})
+                        : svgEmpty(o.w2, o.h.cg, 'inner CG not logged (give its cg_kwargs a name)');
+  const items=steps.map(s=>({x:s.x, v:s.cgIts, key:s.key,
+      cls:[s.est?'est':'', s.st.inner && !cgOk(s.st.inner.points.at(-1)) ? 'stop' : '', s.key===hk?'hl':''].join(' ').trim()}));
+  pend.forEach(c=>items.push({x:S+1, v:c.points.at(-1).it, key:'c'+c.id, cls:'run'+('c'+c.id===hk?' hl':'')}));
+  const cgn=barPlot(items, {w:o.w2, h:o.h.bars, xdom, bands});
+  const sps = o.perSample ? barPlot(runs.map(r=>({key:o.runKey(r), v:r.steps.length,
+      cls:[r===active ? 'run' : stepOk(r.steps.at(-1)) ? '' : 'stop', runHl(r)?'hl':''].join(' ').trim()})), {w:o.w, h:o.h.sps}) : '';
+  let info=o.defaultInfo;
+  const hs=steps.filter(s=>s.key===hk);
+  if(hs.length){
+    const s=hs.at(-1), st=s.st, i=st.iter||{};
+    const head = o.perSample ? 'sample '+(runs.indexOf(s.r)+1)+' · '+s.r.steps.length+' Newton step'+(s.r.steps.length>1?'s':'')
+                             : 'Newton '+(i.it!=null ? i.it : '…');
+    info = head+' · ΔE '+fmt(i.dE)+(i.absdelta!=null ? ' / '+fmt(i.absdelta) : '')
+         + ' · |↘| '+fmt(st.f.descnorm)+' / '+fmt(st.f.xtol)
+         + ' · inner CG '+(s.cgIts!=null ? s.cgIts : '?')+' its'+(s.est && s.cgIts!=null ? ' (from #∇²)' : '')
+         + (hs.map(z=>flagText(z.st)).find(Boolean) || '');
+  } else {
+    const c=pend.find(c=>'c'+c.id===hk);
+    if(c) info='inner CG running · '+c.points.at(-1).it+' its so far';
+  }
+  return {de, dn, cg, cgn, sps, info, short, reset,
+          cgTitle: byNorm ? 'inner CG: |r| / Resnorm per CG iteration · dashed: target'
+                          : 'inner CG: ΔE / AbsDelta per CG iteration · dashed: target'};
+}
+// ==== PURE END ====
+
+// =====================================================================
+// UI
+// =====================================================================
+const $ = id => document.getElementById(id);
+const ROLE_COLOR = {linear:'var(--linear)', nonlinear:'var(--nonlinear)', kl:'var(--kl)', global:'var(--global)', other:'var(--other)'};
+const S_OK='<span class="ok" title="convergence criterion met">✓</span>';
+const S_RUN='<span class="run" title="running">●</span>';
+const S_STOP='<span class="no" title="stopped without meeting a displayed criterion (maxiter?)">■</span>';
+let M = new Model(), selected = null, rawOpen = false, dirty = false, lastRender = 0, es = null;
+let hoverKey = null, pendingScroll = null;
+const expanded = new Map(), vizOff = new Set();
+
+function line(rec, sub){ return '<div class="ln'+(sub?' sub':'')+'">'+(esc(rec.text.trim())||'&nbsp;')+'</div>'; }
+function blk(key, role, title, status, meta, body, defOpen, prov){
+  const open = expanded.has(key) ? expanded.get(key) : defOpen;
+  return '<div class="blk'+(prov?' prov':'')+(key===hoverKey?' hl':'')+'" style="--c:'+ROLE_COLOR[role]+'">'
+    + '<div class="hd" data-k="'+key+'" data-o="'+(open?1:0)+'"><span class="m">'+(open?'▾':'▸')+'</span>'
+    + '<span class="t">'+title+'</span>'+status+'<span class="m">'+meta+'</span></div>'
+    + (open ? body : '') + '</div>';
+}
+function cgMeta(r){ const p=r.points.at(-1); let s=r.points.length+' it · ΔE '+fmt(p.dE)+' / '+fmt(p.absdelta);
+  if(p.norm!=null) s+=' · |r| '+fmt(p.norm)+' / '+fmt(p.resnorm); return s; }
+function cgStatus(r, active){ return cgOk(r.points.at(-1)) ? S_OK : r===active ? S_RUN : S_STOP; }
+function stepBody(st){ return (st.inner ? st.inner.recs.map(x=>line(x,true)).join('') : '') + st.recs.map(x=>line(x)).join(''); }
+function stepMeta(st){
+  const i=st.iter||{}, f=st.f;
+  let s='E '+fmt(i.E)+' · ΔE '+fmt(i.dE); if(i.absdelta!=null) s+=' / '+fmt(i.absdelta);
+  s+=' · |↘| '+fmt(f.descnorm)+' / '+fmt(f.xtol);
+  s+=' · <span class="'+(f.gradscale<1?'run':'')+'">→ '+f.gradscale+'</span> · #∇² '+f.nhess;
+  if(f.reset===true) s+=' · <span class="no">↺ reset</span>';
+  if(st.inner) s+=' · CG '+st.inner.points.length+' it';
+  return s;
+}
+const flagMeta = res => (res && res.short ? ' · '+res.short+' shortened' : '') + (res && res.reset ? ' · '+res.reset+' reset' : '');
+
+// ---- run selections ----
+function linearRuns(g){ return g ? g.runs.filter(r=>r.solver==='cg' && !r.parentStep && r.role==='linear') : []; }
+const ncgRuns  = (g, role) => g ? g.runs.filter(r=>r.solver==='ncg' && r.role===role) : [];
+const pendInner = (g, role) => g ? g.runs.filter(r=>r.solver==='cg' && !r.parentStep && !r.resolved && r.role===role) : [];
+
+// ---- linear sampling ----
+function renderLinear(g, active){
+  const runs=linearRuns(g);
+  if(!runs.length) return ['<div class="empty">no linear sampling in this iteration</div>', ''];
+  const html=runs.map((r,i)=>blk('c'+r.id,'linear','sample '+(i+1), cgStatus(r,active), cgMeta(r),
+      r.recs.map(x=>line(x)).join(''), i===runs.length-1, r.provisional)).join('');
+  const its=runs.reduce((a,r)=>a+r.points.length,0), ok=runs.filter(r=>cgOk(r.points.at(-1))).length;
+  return [html, runs.length+' samples · '+ok+' ✓ · '+its+' CG its'];
+}
+function runEnd(r, active){ return cgOk(r.points.at(-1)) ? 'ok' : r===active ? 'run' : 'stop'; }
+function renderLinearViz(g, active){
+  const runs=linearRuns(g);
+  $('lin-viz').classList.toggle('hidden', !runs.length);
+  if(!runs.length || vizOff.has('lin')) return;
+  const prev = g.idx>0 ? linearRuns(M.globals[g.idx-1]) : [];
+  const key = r => 'c'+r.id;
+  const rank = r => key(r)===hoverKey ? 2 : r===active ? 1 : 0;
+  const ord = runs.slice().sort((a,b)=>rank(a)-rank(b));          // highlighted curves drawn last
+  const cls = r => [r===active?'cur':'', key(r)===hoverKey?'hl':''].join(' ').trim();
+  const mk = val => [
+    ...prev.map(r=>({key:null, cls:'ghost', pts:r.points.map(p=>[p.it, val(p)]), end:null})),
+    ...ord.map(r=>({key:key(r), cls:cls(r), pts:r.points.map(p=>[p.it, val(p)]), end:runEnd(r,active)}))];
+  const w = Math.max(240, $('lin-main').clientWidth || 400);
+  const lastP = runs.at(-1).points.at(-1);
+  $('lin-main').innerHTML = linePlot(mk(p=>p.dE),
+      lastP.absdelta>0 ? [{y:lastP.absdelta, label:'AbsDelta '+fmt(lastP.absdelta)}] : [], {w, h:170});
+  if(runs.some(r=>r.points.some(p=>p.norm!=null))){
+    const rn = runs.map(r=>r.points.at(-1).resnorm).filter(v=>v>0).at(-1);
+    $('lin-res').innerHTML = '<div class="ptitle">|r| per CG iteration · dashed: Resnorm</div>'
+      + linePlot(mk(p=>p.norm), rn ? [{y:rn, label:'Resnorm '+fmt(rn)}] : [], {w, h:120});
+  } else $('lin-res').innerHTML = '';
+  $('lin-bars').innerHTML = barPlot(runs.map(r=>{ const e=runEnd(r,active);
+      return {key:key(r), v:r.points.at(-1).it, cls:(e==='ok'?'':e)+(key(r)===hoverKey?' hl':'')}; }), {w, h:70});
+  const h = runs.find(r=>key(r)===hoverKey);
+  if(h){ const p=h.points.at(-1);
+    $('lin-info').textContent = 'sample '+(runs.indexOf(h)+1)+' · '+p.it+' its · ΔE '+fmt(p.dE)+' / '+fmt(p.absdelta)
+      + ' · E '+(typeof p.E==='number' ? p.E.toPrecision(6) : '–');
+  } else $('lin-info').textContent = 'ΔE per CG iteration · dashed: AbsDelta target';
+}
+
+// ---- Newton-CG panes (nonlinear sampling, KL) ----
+const NCG_OPTS = {
+  nl: { stepKey:r=>'n'+r.id, runKey:r=>'n'+r.id, perSample:true, h:{main:110, cg:100, bars:50, sps:44},
+        defaultInfo:'one point per Newton step, samples laid end to end (alternate shading) · rings: orange = step shortened, red = line-search reset' },
+  kl: { stepKey:(r,j)=>'s'+r.id+'_'+j, runKey:()=>null, perSample:false, h:{main:150, cg:130, bars:60},
+        defaultInfo:'one point per Newton step · grey dashed: previous global iteration · rings: orange = step shortened, red = line-search reset' }
+};
+function renderNcgViz(p, runs, pend, active, ghosts){
+  $(p+'-viz').classList.toggle('hidden', !(runs.length || pend.length));
+  if(!(runs.length || pend.length)) return null;
+  const w  = Math.max(240, ($(p+'-viz').clientWidth||420)-20);
+  const w2 = Math.max(140, $(p+'-de').clientWidth || (w-12)/2);
+  const res = ncgPlots(runs, pend, active, {...NCG_OPTS[p], ghosts, hk:hoverKey, w, w2});
+  if(!vizOff.has(p)){
+    $(p+'-de').innerHTML=res.de; $(p+'-dn').innerHTML=res.dn;
+    $(p+'-cg').innerHTML=res.cg; $(p+'-cgt').textContent=res.cgTitle; $(p+'-cgn').innerHTML=res.cgn;
+    if($(p+'-sps')) $(p+'-sps').innerHTML=res.sps;
+    $(p+'-info').textContent=res.info;
+  }
+  return res;
+}
+function renderNonlinear(g, active){
+  const runs=ncgRuns(g,'nonlinear'), pend=pendInner(g,'nonlinear');
+  if(!runs.length && !pend.length) return [null, 'none in this iteration'];
+  let html=runs.map((r,i)=>{ const last=r.steps.at(-1);
+    const status = stepOk(last) ? S_OK : r===active ? S_RUN : S_STOP;
+    return blk('n'+r.id,'nonlinear','sample '+(i+1), status, r.steps.length+' step'+(r.steps.length>1?'s':'')+' · '+stepMeta(last),
+      r.steps.map(stepBody).join(''), i===runs.length-1 && !pend.length, r.provisional); }).join('');
+  html+=pend.map(c=>blk('c'+c.id,'nonlinear','sample '+(runs.length+1)+' (CG)', cgStatus(c,active), cgMeta(c),
+      c.recs.map(x=>line(x,true)).join(''), true, true)).join('');
+  const ok=runs.filter(r=>stepOk(r.steps.at(-1))).length;
+  return [html, runs.length+' samples · '+ok+' ✓'];
+}
+function renderKL(g, active){
+  const runs=ncgRuns(g,'kl'), pend=pendInner(g,'kl');
+  let html='', nsteps=0, lastE=null;
+  runs.forEach((r,ri)=>{
+    if(runs.length>1) html+='<div class="sep">run '+(ri+1)+' · '+esc(r.name)+'</div>';
+    r.steps.forEach((st,j)=>{
+      const last = j===r.steps.length-1 && !pend.length;
+      const status = stepOk(st) ? S_OK : (last && r===active) ? S_RUN : '';
+      html+=blk('s'+r.id+'_'+j,'kl','Newton '+(st.iter ? st.iter.it : '…'), status, stepMeta(st), stepBody(st), last, r.provisional);
+      nsteps++; if(st.iter) lastE=st.iter.E;
+    });
+  });
+  html+=pend.map(c=>blk('c'+c.id,'kl','Newton … (CG)', cgStatus(c,active), cgMeta(c),
+      c.recs.map(x=>line(x,true)).join(''), true, true)).join('');
+  if(g.done) html+=blk('g'+g.idx,'global','result · KL E '+fmt(g.E), S_OK, g.report.length+' report lines',
+      g.report.map(x=>line(x)).join(''), true, false);
+  if(!html) html='<div class="empty">waiting for KL minimization…</div>';
+  return [html, nsteps+' Newton steps'+(lastE!=null?' · E '+fmt(lastE):'')];
+}
+
+// ---- frame ----
+function setPane(id, html, meta){
+  const el=$('p-'+id), atBottom = el.scrollHeight-el.scrollTop-el.clientHeight < 30;
+  $('pane-'+id).classList.toggle('collapsed', html==null);
+  el.innerHTML = html==null ? '' : html; $('m-'+id).textContent = meta;
+  if(atBottom) el.scrollTop = el.scrollHeight;
+}
+function renderGlobals(){
+  const gs=M.globals, sel = selected==null ? gs.length-1 : selected;
+  $('globals').innerHTML = gs.map((g,i)=>'<button data-g="'+i+'" class="'+(i===sel?'on':'')+'">#'+g.n
+      +(g.done ? ' · E '+fmt(g.E) : ' · …')+'</button>').join('')
+    + (gs.length ? '<button data-g="follow" class="'+(selected==null?'on':'')+'">follow latest</button>' : '');
+}
+function renderRaw(){
+  const el=$('raw'), atBottom = el.scrollHeight-el.scrollTop-el.clientHeight < 30;
+  el.innerHTML = M.lines.map(r=>{ const role = r.owner ? r.owner.role : r.kind;
+    return '<div class="ln" style="--c:'+ROLE_COLOR[role]+'"><span class="r">'+role+'</span>'+esc(r.text)+'</div>'; }).join('');
+  if(atBottom) el.scrollTop = el.scrollHeight;
+}
+function render(){
+  dirty=false; lastRender=performance.now();
+  $('count').textContent = M.lines.length+' lines';
+  renderGlobals();
+  for(const v of ['lin','nl','kl']){
+    $(v+'-viz').classList.toggle('off', vizOff.has(v));
+    document.querySelector('.vt[data-v="'+v+'"]').classList.toggle('on', !vizOff.has(v));
+  }
+  const g = M.globals[selected==null ? M.globals.length-1 : selected];
+  if(g){
+    const active = (!g.done && !M.ended) ? M.activeRun : null;
+    const prevG = g.idx>0 ? M.globals[g.idx-1] : null;
+    renderLinearViz(g, active);
+    const rNl = renderNcgViz('nl', ncgRuns(g,'nonlinear'), pendInner(g,'nonlinear'), active, []);
+    const rKl = renderNcgViz('kl', ncgRuns(g,'kl'), pendInner(g,'kl'), active, ncgRuns(prevG,'kl'));
+    setPane('linear', ...renderLinear(g, active));
+    const [nlHtml, nlMeta] = renderNonlinear(g, active);
+    setPane('nonlinear', nlHtml, nlMeta + flagMeta(rNl));
+    const [klHtml, klMeta] = renderKL(g, active);
+    setPane('kl', klHtml, klMeta + flagMeta(rKl));
+  }
+  if(rawOpen) renderRaw();
+  if(pendingScroll){ const el=document.querySelector('.hd[data-k="'+pendingScroll+'"]'); if(el) el.scrollIntoView({block:'nearest'}); pendingScroll=null; }
+}
+function schedule(){
+  if(dirty) return; dirty=true;
+  setTimeout(()=>requestAnimationFrame(render), Math.max(0, 150-(performance.now()-lastRender)));
+}
+function setStatus(cls, text){ $('status').className='status '+cls; $('stxt').textContent=text; }
+function setHover(k){ if(k===hoverKey) return; hoverKey=k; schedule(); }
+
+// ---- events ----
+document.addEventListener('mouseover', e=>{
+  const t=e.target.closest('[data-h]'); if(t) return setHover(t.dataset.h);
+  const hd=e.target.closest('.hd'); if(hd) return setHover(hd.dataset.k);
+  setHover(null);
+});
+document.addEventListener('click', e=>{
+  const vt=e.target.closest('.vt');
+  if(vt){ const v=vt.dataset.v; vizOff.has(v) ? vizOff.delete(v) : vizOff.add(v); schedule(); return; }
+  const t=e.target.closest('[data-h]');
+  if(t){ const k=t.dataset.h; expanded.set(k, true); pendingScroll=k; schedule(); return; }
+  const hd=e.target.closest('.hd');
+  if(hd){ expanded.set(hd.dataset.k, hd.dataset.o!=='1'); schedule(); }
+});
+$('globals').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  selected = b.dataset.g==='follow' ? null : +b.dataset.g; schedule(); });
+$('rawbtn').addEventListener('click', ()=>{
+  rawOpen=!rawOpen; $('rawwrap').classList.toggle('open',rawOpen); $('rawbtn').classList.toggle('on',rawOpen); schedule(); });
+window.addEventListener('resize', schedule);
+document.addEventListener('dragover', e=>{ e.preventDefault(); document.body.classList.add('drop'); });
+document.addEventListener('dragleave', e=>{ if(!e.relatedTarget) document.body.classList.remove('drop'); });
+document.addEventListener('drop', async e=>{
+  e.preventDefault(); document.body.classList.remove('drop');
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  if(es) es.close();
+  M=new Model(); M.ended=true; selected=null; expanded.clear(); hoverKey=null;
+  for(const l of (await f.text()).split(/\r?\n/)) M.push(l);
+  setStatus('done','file: '+f.name); schedule(); });
+if(location.protocol.startsWith('http')){
+  es=new EventSource('stream');
+  es.onopen=()=>setStatus('live','live');
+  es.onmessage=e=>{ M.push(JSON.parse(e.data)); schedule(); };
+  es.addEventListener('done', ()=>{ es.close(); M.ended=true; setStatus('done','run finished'); schedule(); });
+  es.onerror=()=>{ if(es.readyState!==EventSource.CLOSED) setStatus('warn','reconnecting…'); };
+} else setStatus('warn','offline · drop a log file here');
+</script>
+</body>
+</html>
