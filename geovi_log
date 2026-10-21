@@ -1,0 +1,116 @@
+OPTIMIZE_KL: Starting 0001
+CG, linear sampling: Iteration 0 ⛰:-4.2247e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.2045e+02 Δ⛰:9.7983e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.2050e+02 Δ⛰:4.9480e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.2072e+02 Δ⛰:2.1800e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.2072e+02 Δ⛰:1.1795e-04 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.6668e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.8662e+02 Δ⛰:1.9939e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.8663e+02 Δ⛰:1.1806e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-2.1147e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.6173e+02 Δ⛰:2.5026e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.6180e+02 Δ⛰:7.1151e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.6198e+02 Δ⛰:1.7725e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-4.6198e+02 Δ⛰:1.3530e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.6460e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7323e+02 Δ⛰:8.6322e+00 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7324e+02 Δ⛰:1.1222e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-3.4356e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.4635e+02 Δ⛰:2.0279e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.4647e+02 Δ⛰:1.1270e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.4653e+02 Δ⛰:6.2116e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.4653e+02 Δ⛰:1.2103e-04 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-1.2537e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7307e+02 Δ⛰:3.4769e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7310e+02 Δ⛰:2.9052e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.7310e+02 Δ⛰:3.6782e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-5.3885e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.4543e+02 Δ⛰:6.5886e+00 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.4546e+02 Δ⛰:2.3852e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.4598e+02 Δ⛰:5.2275e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.4598e+02 Δ⛰:1.3885e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-2.8809e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.1514e+02 Δ⛰:2.2705e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.1527e+02 Δ⛰:1.3468e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.1550e+02 Δ⛰:2.2468e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.1550e+02 Δ⛰:1.9468e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.2908e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.9548e+02 Δ⛰:6.6404e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.9552e+02 Δ⛰:3.8187e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.9553e+02 Δ⛰:4.3055e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-3.8801e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7420e+02 Δ⛰:8.6195e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7425e+02 Δ⛰:4.3462e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.7451e+02 Δ⛰:2.6256e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-4.7451e+02 Δ⛰:9.3269e-06 ➽:2.0000e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.145589e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+6.522289e-06 Δ⛰:2.506366e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.146373e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+3.917184e-07 Δ⛰:1.122453e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.315752e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+4.253013e-07 Δ⛰:5.388266e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.379102e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+7.336077e-07 Δ⛰:6.573618e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.914939e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+2.439808e-07 Δ⛰:2.395081e+00
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.779367e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+2.532433e-07 Δ⛰:2.872754e+00
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:3.341689e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+5.826510e-06 Δ⛰:3.896331e+00
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:4.644007e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+2.728346e-04 Δ⛰:3.837704e+00
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:7.599174e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+6.508611e-09 Δ⛰:4.616808e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:7.778088e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+3.691190e-09 Δ⛰:4.292140e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:5.144672e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+9.085778e-09 Δ⛰:3.785555e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:6.458998e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+4.774777e-08 Δ⛰:4.739954e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.069036e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+1.166497e-07 Δ⛰:5.369848e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.005700e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+5.909818e-08 Δ⛰:6.206590e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:5.676772e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+7.838449e-09 Δ⛰:7.298853e-02
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:1.933183e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+7.336151e-05 Δ⛰:4.059296e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:6.755262e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+1.446756e-03 Δ⛰:1.166366e+01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:2.904070e-01 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+3.473438e-08 Δ⛰:5.164636e+00
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:8.427543e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+1.900744e-08 Δ⛰:4.356029e-01
+nonlin: →:1.0 ↺:False #∇²:06 |↘|:7.813641e-02 🞋:1.003000e+02
+nonlin: Iteration 1 ⛰:+1.720925e-08 Δ⛰:4.937381e-01
+	CG: KL minim: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:2.0000e-02 |∇|:1.3161e+03 ➽:6.5805e+02
+	CG: KL minim: Iteration 1 ⛰:-5.3911e+02 Δ⛰:5.3911e+02 ➽:2.0000e-02 |∇|:7.6499e+02 ➽:6.5805e+02
+	CG: KL minim: Iteration 2 ⛰:-6.4416e+02 Δ⛰:1.0505e+02 ➽:2.0000e-02 |∇|:7.7056e+02 ➽:6.5805e+02
+	CG: KL minim: Iteration 3 ⛰:-9.8374e+02 Δ⛰:3.3958e+02 ➽:2.0000e-02 |∇|:3.7728e+00 ➽:6.5805e+02
+KL line search: →:1.0 ↺:False #∇²:03 |↘|:7.655027e+02 🞋:1.003000e-02
+KL line search: Iteration 1 ⛰:+5.456213e+02 Δ⛰:9.730414e+02 🞋:2.000000e-01
+	CG: KL minim: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:2.0000e-02 |∇|:5.8907e+01 ➽:2.9454e+01
+	CG: KL minim: Iteration 1 ⛰:-1.0508e+01 Δ⛰:1.0508e+01 ➽:2.0000e-02 |∇|:3.5592e+00 ➽:2.9454e+01
+KL line search: →:1.0 ↺:False #∇²:04 |↘|:5.408989e-01 🞋:1.003000e-02
+KL line search: Iteration 2 ⛰:+5.351127e+02 Δ⛰:1.050858e+01 🞋:2.000000e-01
+	CG: KL minim: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:2.0000e-02 |∇|:3.5960e+00 ➽:1.7980e+00
+	CG: KL minim: Iteration 1 ⛰:-2.5105e-01 Δ⛰:2.5105e-01 ➽:2.0000e-02 |∇|:7.1660e+00 ➽:1.7980e+00
+	CG: KL minim: Iteration 2 ⛰:-3.6051e-01 Δ⛰:1.0946e-01 ➽:2.0000e-02 |∇|:3.0510e-01 ➽:1.7980e+00
+KL line search: →:1.0 ↺:False #∇²:06 |↘|:3.108591e+00 🞋:1.003000e-02
+KL line search: Iteration 3 ⛰:+5.348029e+02 Δ⛰:3.098317e-01 🞋:2.000000e-01
+	CG: KL minim: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:2.0000e-02 |∇|:8.3841e-01 ➽:4.1921e-01
+	CG: KL minim: Iteration 1 ⛰:-6.5800e-03 Δ⛰:6.5800e-03 ➽:2.0000e-02 |∇|:2.0777e+00 ➽:4.1921e-01
+KL line search: →:1.0 ↺:False #∇²:07 |↘|:1.278158e-01 🞋:1.003000e-02
+KL line search: Iteration 4 ⛰:+5.347970e+02 Δ⛰:5.923292e-03 🞋:2.000000e-01
+OPTIMIZE_KL: Iteration 0001 ⛰:+5.3480e+02
+OPTIMIZE_KL: #(Nonlinear sampling steps) (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+OPTIMIZE_KL: #(KL minimization steps) 4
+OPTIMIZE_KL: Likelihood residual(s):
+'reduced χ²:   0.072±  0.0052, avg:  +0.0055± 5.6e-17, #dof:   1000'
+
+OPTIMIZE_KL: Prior residual(s):
+s_model_fluctuations    :: 'reduced χ²:    0.77±    0.87, avg:    -0.49±    0.73, #dof:      1'
+s_model_loglogavgslope  :: 'reduced χ²:     1.4±     1.8, avg:    -0.56±     1.1, #dof:      1'
+s_model_xi              :: 'reduced χ²:    0.99±    0.06, avg:  -0.0011±    0.03, #dof:   1000'
+s_model_zeromode        :: 'reduced χ²:    0.68±     0.7, avg: -0.00026±    0.82, #dof:      1'
+

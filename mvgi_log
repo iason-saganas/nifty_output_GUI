@@ -1,0 +1,83 @@
+OPTIMIZE_KL: Starting 0001
+CG, linear sampling: Iteration 0 ⛰:-4.2247e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.2045e+02 Δ⛰:9.7983e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.2050e+02 Δ⛰:4.9480e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.2072e+02 Δ⛰:2.1800e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.2072e+02 Δ⛰:1.1795e-04 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.6668e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.8662e+02 Δ⛰:1.9939e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.8663e+02 Δ⛰:1.1806e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-2.1147e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.6173e+02 Δ⛰:2.5026e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.6180e+02 Δ⛰:7.1151e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.6198e+02 Δ⛰:1.7725e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-4.6198e+02 Δ⛰:1.3530e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.6460e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7323e+02 Δ⛰:8.6322e+00 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7324e+02 Δ⛰:1.1222e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-3.4356e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.4635e+02 Δ⛰:2.0279e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.4647e+02 Δ⛰:1.1270e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.4653e+02 Δ⛰:6.2116e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.4653e+02 Δ⛰:1.2103e-04 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-1.2537e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7307e+02 Δ⛰:3.4769e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7310e+02 Δ⛰:2.9052e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.7310e+02 Δ⛰:3.6782e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-5.3885e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.4543e+02 Δ⛰:6.5886e+00 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.4546e+02 Δ⛰:2.3852e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.4598e+02 Δ⛰:5.2275e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.4598e+02 Δ⛰:1.3885e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-2.8809e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-5.1514e+02 Δ⛰:2.2705e+02 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-5.1527e+02 Δ⛰:1.3468e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-5.1550e+02 Δ⛰:2.2468e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-5.1550e+02 Δ⛰:1.9468e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-4.2908e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.9548e+02 Δ⛰:6.6404e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.9552e+02 Δ⛰:3.8187e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.9553e+02 Δ⛰:4.3055e-03 ➽:2.0000e-02
+CG, linear sampling: Iteration 0 ⛰:-3.8801e+02 Δ⛰:inf ➽:2.0000e-02
+CG, linear sampling: Iteration 1 ⛰:-4.7420e+02 Δ⛰:8.6195e+01 ➽:2.0000e-02
+CG, linear sampling: Iteration 2 ⛰:-4.7425e+02 Δ⛰:4.3462e-02 ➽:2.0000e-02
+CG, linear sampling: Iteration 3 ⛰:-4.7451e+02 Δ⛰:2.6256e-01 ➽:2.0000e-02
+CG, linear sampling: Iteration 4 ⛰:-4.7451e+02 Δ⛰:9.3269e-06 ➽:2.0000e-02
+	KL CG: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:1.0000e-03 |∇|:1.3142e+03 ➽:6.5712e+02
+	KL CG: Iteration 1 ⛰:-5.3662e+02 Δ⛰:5.3662e+02 ➽:1.0000e-03 |∇|:7.6505e+02 ➽:6.5712e+02
+	KL CG: Iteration 2 ⛰:-6.4252e+02 Δ⛰:1.0590e+02 ➽:1.0000e-03 |∇|:7.6955e+02 ➽:6.5712e+02
+	KL CG: Iteration 3 ⛰:-9.8121e+02 Δ⛰:3.3868e+02 ➽:1.0000e-03 |∇|:4.1197e+00 ➽:6.5712e+02
+	KL CG: Iteration 4 ⛰:-9.8160e+02 Δ⛰:3.8773e-01 ➽:1.0000e-03 |∇|:4.3254e-01 ➽:6.5712e+02
+	KL CG: Iteration 5 ⛰:-9.8160e+02 Δ⛰:7.2371e-03 ➽:1.0000e-03 |∇|:1.8358e-02 ➽:6.5712e+02
+	KL CG: Iteration 6 ⛰:-9.8160e+02 Δ⛰:1.6015e-05 ➽:1.0000e-03 |∇|:1.6357e-03 ➽:6.5712e+02
+KL Line search: →:1.0 ↺:False #∇²:06 |↘|:7.666840e+02 🞋:1.003000e-02
+KL Line search: Iteration 1 ⛰:+5.444743e+02 Δ⛰:9.718502e+02 🞋:1.000000e-01
+	KL CG: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:9.7185e+01 |∇|:5.3628e+01 ➽:2.6814e+01
+	KL CG: Iteration 1 ⛰:-9.5424e+00 Δ⛰:9.5424e+00 ➽:9.7185e+01 |∇|:3.4744e-01 ➽:2.6814e+01
+	KL CG: Iteration 2 ⛰:-9.5435e+00 Δ⛰:1.1236e-03 ➽:9.7185e+01 |∇|:7.5700e-01 ➽:2.6814e+01
+	KL CG: Iteration 3 ⛰:-9.5512e+00 Δ⛰:7.6984e-03 ➽:9.7185e+01 |∇|:6.3404e-02 ➽:2.6814e+01
+	KL CG: Iteration 4 ⛰:-9.5516e+00 Δ⛰:3.8724e-04 ➽:9.7185e+01 |∇|:6.6412e-03 ➽:2.6814e+01
+	KL CG: Iteration 5 ⛰:-9.5516e+00 Δ⛰:4.4127e-06 ➽:9.7185e+01 |∇|:2.4476e-04 ➽:2.6814e+01
+	KL CG: Iteration 6 ⛰:-9.5516e+00 Δ⛰:4.4181e-09 ➽:9.7185e+01 |∇|:2.1560e-05 ➽:2.6814e+01
+KL Line search: →:1.0 ↺:False #∇²:12 |↘|:7.266440e-01 🞋:1.003000e-02
+KL Line search: Iteration 2 ⛰:+5.349232e+02 Δ⛰:9.551038e+00 🞋:1.000000e-01
+	KL CG: Iteration 0 ⛰:+0.0000e+00 Δ⛰:inf ➽:9.5510e-01 |∇|:7.2427e-01 ➽:3.6214e-01
+	KL CG: Iteration 1 ⛰:-1.2813e-03 Δ⛰:1.2813e-03 ➽:9.5510e-01 |∇|:1.0226e-01 ➽:3.6214e-01
+	KL CG: Iteration 2 ⛰:-2.0805e-03 Δ⛰:7.9912e-04 ➽:9.5510e-01 |∇|:1.6546e-01 ➽:3.6214e-01
+	KL CG: Iteration 3 ⛰:-2.1613e-03 Δ⛰:8.0854e-05 ➽:9.5510e-01 |∇|:2.2036e-02 ➽:3.6214e-01
+	KL CG: Iteration 4 ⛰:-2.1960e-03 Δ⛰:3.4714e-05 ➽:9.5510e-01 |∇|:3.1223e-03 ➽:3.6214e-01
+	KL CG: Iteration 5 ⛰:-2.1968e-03 Δ⛰:7.5684e-07 ➽:9.5510e-01 |∇|:1.1671e-04 ➽:3.6214e-01
+	KL CG: Iteration 6 ⛰:-2.1968e-03 Δ⛰:1.2109e-09 ➽:9.5510e-01 |∇|:9.6318e-06 ➽:3.6214e-01
+KL Line search: →:1.0 ↺:False #∇²:18 |↘|:8.548991e-02 🞋:1.003000e-02
+KL Line search: Iteration 3 ⛰:+5.349214e+02 Δ⛰:1.851993e-03 🞋:1.000000e-01
+OPTIMIZE_KL: Iteration 0001 ⛰:+5.3492e+02
+OPTIMIZE_KL: Linear sampling status (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+OPTIMIZE_KL: #(KL minimization steps) 3
+OPTIMIZE_KL: Likelihood residual(s):
+'reduced χ²:   0.072±  0.0053, avg:  +0.0055± 5.6e-17, #dof:   1000'
+
+OPTIMIZE_KL: Prior residual(s):
+s_model_fluctuations    :: 'reduced χ²:    0.79±    0.89, avg:    -0.51±    0.73, #dof:      1'
+s_model_loglogavgslope  :: 'reduced χ²:     1.6±     1.9, avg:    -0.71±     1.0, #dof:      1'
+s_model_xi              :: 'reduced χ²:    0.99±    0.06, avg:  -0.0012±    0.03, #dof:   1000'
+s_model_zeromode        :: 'reduced χ²:    0.68±     0.7, avg: -5.5e-13±    0.82, #dof:      1'
