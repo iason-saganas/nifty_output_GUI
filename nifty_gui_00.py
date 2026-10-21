@@ -22,7 +22,7 @@ import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-PAGE_PATH = Path(__file__).with_name("nifty_gui.html")
+PAGE_PATH = Path(__file__).with_name("nifty_gui_00.html")
 
 # --------------------------------------------------------------------------- #
 # Line store: every captured line, kept in memory so late/refreshing clients
