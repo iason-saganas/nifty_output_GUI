@@ -13,6 +13,7 @@ Then open http://localhost:8000. Output is still echoed to the terminal.
 Over SSH:  ssh -L 8000:localhost:8000 user@cluster
 """
 import argparse
+import errno
 import json
 import os
 import subprocess
@@ -22,6 +23,7 @@ import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 PAGE_PATH = Path(__file__).with_name("nifty_gui_01.html")
 
 # --------------------------------------------------------------------------- #
@@ -72,14 +74,15 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        if self.path in ("/", "/index.html"):
+        path = urlsplit(self.path).path  # ignore ?n=... (read by the page itself)
+        if path in ("/", "/index.html"):
             body = PAGE_PATH.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
-        elif self.path.startswith("/stream"):
+        elif path == "/stream":
             self.stream()
         else:
             self.send_error(404)
@@ -131,10 +134,22 @@ def main():
     args = ap.parse_args()
     cmd = args.command[1:] if args.command[:1] == ["--"] else args.command
 
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
+    # If the port is taken (e.g. a second GUI is running), try the next ones.
+    for port in range(args.port, args.port + 100):
+        try:
+            server = ThreadingHTTPServer((args.host, port), Handler)
+            break
+        except OSError as e:
+            if e.errno != errno.EADDRINUSE:
+                raise
+    else:
+        sys.exit(f"[nifty_gui] no free port in {args.port}-{args.port + 99}")
+    if port != args.port:
+        print(f"[nifty_gui] port {args.port} in use, using {port} instead",
+              file=sys.stderr, flush=True)
     server.daemon_threads = True
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    url = f"http://{'localhost' if args.host in ('127.0.0.1', '0.0.0.0') else args.host}:{args.port}"
+    url = f"http://{'localhost' if args.host in ('127.0.0.1', '0.0.0.0') else args.host}:{port}"
     print(f"[nifty_gui] serving on {url}", file=sys.stderr, flush=True)
     if args.open:
         webbrowser.open(url)

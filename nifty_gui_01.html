@@ -27,7 +27,7 @@
   button.on { border-color:var(--global); color:var(--global); }
   #globals { display:flex; gap:6px; flex-wrap:wrap; }
   main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); }
-  .col { display:flex; flex-direction:column; min-height:0; background:var(--bg); }
+  .col { display:flex; flex-direction:column; min-height:0; min-width:0; background:var(--bg); }
   .pane { display:flex; flex-direction:column; min-height:0; flex:1; }
   .pane + .pane { border-top:1px solid var(--line); }
   #pane-linear { flex:3; }
@@ -39,6 +39,7 @@
   .pane h2 .tag { width:10px; height:10px; border-radius:2px; background:var(--c); }
   .pane h2 .meta { color:var(--dim); font-weight:400; }
   .pane h2 .vt { margin-left:auto; font-size:11px; padding:0 6px; font-weight:400; }
+  .pane h2 .vt + .vt { margin-left:0; }
   .body { flex:1; overflow:auto; padding:4px 0; }
   .empty { color:var(--dim); padding:8px 12px; font-style:italic; }
   .sep { color:var(--dim); padding:6px 12px 2px; }
@@ -62,7 +63,7 @@
   body.drop { outline:2px dashed var(--global); outline-offset:-6px; }
 
   /* ---- plots ---- */
-  .viz { flex:none; padding:6px 10px 8px; border-bottom:1px solid var(--line); }
+  .viz { flex:none; padding:6px 10px 8px; border-bottom:1px solid var(--line); overflow:hidden; }
   .viz.hidden, .viz.off { display:none; }
   .tools { display:flex; gap:10px; align-items:center; color:var(--dim); min-height:20px; }
   .tools .info { color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px; }
@@ -86,11 +87,17 @@
   svg .m-stop { fill:none; stroke:var(--bad); stroke-width:1.5; }
   svg .mk { fill:var(--c); cursor:pointer; }
   svg .mk.ok { fill:var(--live); }
-  svg .mk.run { fill:var(--warn); }
+  svg .mk.run { fill:var(--bg); stroke:var(--warn); stroke-width:1.5; }
   svg .mk.stop { fill:var(--bad); }
   svg .mk.hl { fill:#ffffff; }
-  svg .ring-short { fill:none; stroke:var(--warn); stroke-width:1.5; }
+  svg .ring-short { fill:none; stroke:#4fd6e8; stroke-width:1.5; }
   svg .ring-reset { fill:none; stroke:var(--bad); stroke-width:2; }
+  svg .err { stroke:var(--c); stroke-width:1.2; opacity:.7; }
+  svg .s.prior:not(.hl) .l { stroke:var(--dim); stroke-width:1; opacity:.45; }
+  svg .y2 .l { fill:none; stroke:var(--global); stroke-width:1.8; }
+  svg .y2 .mk { fill:var(--global); }
+  svg .y2 .mk.hl { fill:#ffffff; }
+  svg text.y2t { fill:var(--global); }
   svg .bar { fill:var(--c); opacity:.75; cursor:pointer; }
   svg .bar.est { opacity:.35; }
   svg .bar.stop { fill:var(--bad); }
@@ -111,7 +118,7 @@
 <main>
   <div class="col">
     <section class="pane" id="pane-linear" style="--c:var(--linear)">
-      <h2><span class="tag"></span>Linear sampling <span class="meta" id="m-linear"></span><button class="vt" data-v="lin">plots</button></h2>
+      <h2><span class="tag"></span>Linear sampling <span class="meta" id="m-linear"></span><button class="vt" data-v="eps" title="plot the relative sample error ε instead of ΔE">ε</button><button class="vt" data-v="lin">plots</button></h2>
       <div class="viz hidden" id="lin-viz">
         <div class="tools"><span class="info" id="lin-info"></span></div>
         <div id="lin-main"></div>
@@ -139,7 +146,11 @@
   </div>
   <div class="col">
     <section class="pane" id="pane-kl" style="--c:var(--kl)">
-      <h2><span class="tag"></span>KL minimization <span class="meta" id="m-kl"></span><button class="vt" data-v="kl">plots</button></h2>
+      <h2><span class="tag"></span>KL minimization <span class="meta" id="m-kl"></span><button class="vt" data-v="chi">χ²</button><button class="vt" data-v="kl">plots</button></h2>
+      <div class="viz hidden" id="chi-viz">
+        <div class="tools"><span class="info" id="chi-info"></span></div>
+        <div id="chi-plot"></div>
+      </div>
       <div class="viz hidden" id="kl-viz">
         <div class="tools"><span class="info" id="kl-info"></span></div>
         <div class="grid2">
@@ -269,6 +280,46 @@ class Model {
   }
 }
 
+// Reduced χ² from the "Likelihood/Prior residual(s)" report printed after each global iteration.
+// Returns [{name, kind:'lik'|'prior', pts:[{n, v, sd, dof}]}], one entry per likelihood / prior component.
+const RE_CHI = /reduced\s*(?:χ²|chi²|chi\^?2|χ2)\s*:\s*([^\s±]+)\s*±\s*([^\s,]+).*?#dof:\s*(\d+)/i;
+function chiSeries(globals){
+  const by=new Map(), out=[];
+  for(const g of globals){
+    let sec=null, owner=null, li=0, nLik=0;
+    for(const rec of g.report){
+      const t=rec.text;
+      if(/Likelihood residual/.test(t)){ sec='lik'; owner=null; continue; }
+      if(/Prior residual/.test(t)){ sec='prior'; owner=null; continue; }
+      if(!sec) continue;
+      const named=/^\s*([^\s:']+)\s*::\s*(.*)$/.exec(t);
+      if(named){ owner=named[1]; li=0; if(!RE_CHI.test(named[2])) continue; }
+      const m=RE_CHI.exec(t); if(!m) continue;
+      let name;
+      if(named) name=owner;
+      else if(owner) name=owner+'['+(li++)+']';                     // entry of a "name :: list(...)" block
+      else name = sec==='lik' ? 'likelihood'+(nLik++ ? '['+(nLik-1)+']' : '') : 'prior';
+      const key=sec+':'+name;
+      if(!by.has(key)){ const e={name, kind:sec, pts:[]}; by.set(key,e); out.push(e); }
+      by.get(key).pts.push({n:g.n, v:parseFloat(m[1]), sd:parseFloat(m[2]), dof:+m[3]});
+    }
+  }
+  return out.sort((a,b)=>(a.kind==='lik')-(b.kind==='lik'));      // likelihood drawn last (on top)
+}
+
+// Latent dimension n: sum of the prior components' #dof in the latest report (null before the first one).
+function latentDim(globals){
+  const prior=chiSeries(globals).filter(e=>e.kind==='prior'), pts=prior.flatMap(e=>e.pts);
+  if(!pts.length) return null;
+  const last=Math.max(...pts.map(p=>p.n));
+  return pts.filter(p=>p.n===last).reduce((a,p)=>a+p.dof, 0);
+}
+// Linear-sampling CG solves A x = b with <b b^T> = A, so E_min = -b^T A^-1 b / 2 ~ -n/2 (scatter sqrt(n/2)) and
+// E - E_min = |x - x*|_A^2 / 2.  eps = sqrt(2 (E - E_min) / n): RMS error per eigen-direction in posterior stds.
+const linEps = (E, n) => typeof E==='number' && n>0 ? Math.sqrt(2*Math.max(E + n/2, 0)/n) : undefined;
+const epsFloor = n => Math.sqrt(2*Math.sqrt(n/2)/n);            // eps hidden by the scatter of E_min
+const fmtPct = x => x==null ? '–' : (100*x).toPrecision(2)+' %';
+
 // ---- small helpers ----
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = x => x==null ? '–' : x===Infinity ? '∞' : typeof x==='number' ? (x===0 ? '0' : x.toExponential(2)) : String(x);
@@ -291,20 +342,24 @@ const svgOpen = (w,h) => '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '
 const svgEmpty = (w,h,msg) => svgOpen(w,h)+'<text x="'+(w/2)+'" y="'+(h/2)+'" text-anchor="middle">'+msg+'</text></svg>';
 const okPt = ([x,y]) => isFinite(x) && y>0 && isFinite(y);
 
-// series: [{key|null, cls, pts:[[x,y]], end:'ok'|'run'|'stop'|null, marks?:[{x,y,key,cls,ring}]}]
+// series: [{key|null, cls, pts:[[x,y]], end:'ok'|'run'|'stop'|null, marks?:[{x,y,key,cls,ring,err}]}]
 // linear x, log y.  hlines: [{y,label}] dashed targets.
-// o: {w, h, xdom?:[lo,hi], bands?:[{x0,x1}], empty?}
+// o: {w, h, xdom?:[lo,hi], bands?:[{x0,x1}], empty?,
+//     y2?:{pts:[{x,y,key,cls}]}}  second series on its own linear axis at the right
 function linePlot(series, hlines, o){
-  const W=o.w, H=o.h, P={l:46, r:12, t:8, b:20};
-  const xs=[], ys=[];
+  const y2pts = o.y2 ? o.y2.pts.filter(p=>isFinite(p.x) && typeof p.y==='number' && isFinite(p.y)) : [];
+  const W=o.w, H=o.h, P={l:46, r:y2pts.length ? 56 : 12, t:8, b:20};
+  const xs=y2pts.map(p=>p.x), ys=[];
   for(const s of series){
     for(const p of s.pts) if(okPt(p)){ xs.push(p[0]); ys.push(p[1]); }
-    for(const m of (s.marks||[])) if(okPt([m.x,m.y])){ xs.push(m.x); ys.push(m.y); }
+    for(const m of (s.marks||[])) if(okPt([m.x,m.y])){ xs.push(m.x); ys.push(m.y);
+      if(m.err>0){ ys.push(m.y+m.err); if(m.y-m.err>0) ys.push(m.y-m.err); } }
   }
   if(!xs.length) return svgEmpty(W, H, o.empty||'waiting for data…');
+  const hasY = ys.length>0;
   for(const h of hlines) if(h.y>0 && isFinite(h.y)) ys.push(h.y);
   const [x0,x1] = o.xdom || [1, Math.max(2, ...xs)];
-  let a=Math.floor(Math.log10(Math.min(...ys))), b=Math.ceil(Math.log10(Math.max(...ys))); if(b<=a) b=a+1;
+  let a=Math.floor(Math.log10(Math.min(...ys))), b=Math.ceil(Math.log10(Math.max(...ys))); if(!(b>a)) b=a+1;
   const fx = sLin(x0, x1, P.l, W-P.r);
   const fy = sLog(10**a, 10**b, H-P.b, P.t);
   let g='';
@@ -313,7 +368,7 @@ function linePlot(series, hlines, o){
     g+='<rect class="band" x="'+xa+'" y="'+P.t+'" width="'+r1(xb-xa)+'" height="'+(H-P.b-P.t)+'"/>';
   }
   const every = b-a>8 ? 2 : 1;
-  for(let k=a; k<=b; k++){
+  if(hasY) for(let k=a; k<=b; k++){
     const y=r1(fy(10**k));
     g+='<line class="grid" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/>';
     if((k-a)%every===0) g+='<text x="'+(P.l-4)+'" y="'+(y+3)+'" text-anchor="end">1e'+k+'</text>';
@@ -323,7 +378,7 @@ function linePlot(series, hlines, o){
     g+='<line class="grid" x1="'+x+'" x2="'+x+'" y1="'+P.t+'" y2="'+(H-P.b)+'"/>'
      + '<text x="'+x+'" y="'+(H-P.b+12)+'" text-anchor="middle">'+t+'</text>';
   }
-  for(const h of hlines){
+  if(hasY) for(const h of hlines){
     if(!(h.y>0 && isFinite(h.y))) continue;
     const y=r1(fy(h.y));
     g+='<line class="tgt" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/>'
@@ -340,11 +395,24 @@ function linePlot(series, hlines, o){
     const dots = (!s.marks && /cur|hl/.test(s.cls)) ? pts.map(([x,y])=>'<circle class="pt" cx="'+r1(fx(x))+'" cy="'+r1(fy(y))+'" r="1.8"/>').join('') : '';
     const marks = (s.marks||[]).filter(m=>okPt([m.x,m.y])).map(m=>{
       const mx=r1(fx(m.x)), my=r1(fy(m.y));
-      return (m.ring ? '<circle class="ring-'+m.ring+'" cx="'+mx+'" cy="'+my+'" r="6"/>' : '')
+      const eb = m.err>0 ? '<line class="err" x1="'+mx+'" x2="'+mx+'" y1="'+r1(fy(m.y+m.err))+'" y2="'
+                           +r1(m.y-m.err>0 ? fy(m.y-m.err) : H-P.b)+'"/>' : '';
+      return eb + (m.ring ? '<circle class="ring-'+m.ring+'" cx="'+mx+'" cy="'+my+'" r="6"/>' : '')
            + '<circle class="mk '+m.cls+'" data-h="'+m.key+'" cx="'+mx+'" cy="'+my+'" r="3"/>'; }).join('');
     const live = s.key!=null;
     g+='<g class="s '+s.cls+'"'+(live?' data-h="'+s.key+'"':'')+'>'+(live?'<path class="hit" d="'+d+'"/>':'')
      + '<path class="l" d="'+d+'"/>'+dots+mk+marks+'</g>';
+  }
+  if(y2pts.length){
+    let lo=Math.min(...y2pts.map(p=>p.y)), hi=Math.max(...y2pts.map(p=>p.y));
+    const pad=(hi-lo)*0.08 || Math.abs(hi)*0.05 || 1; lo-=pad; hi+=pad;
+    const f2=sLin(lo, hi, H-P.b, P.t), xr=W-P.r;
+    g+='<line class="grid" x1="'+xr+'" x2="'+xr+'" y1="'+P.t+'" y2="'+(H-P.b)+'"/>';
+    for(const t of ticksLin(lo, hi, 4, false))
+      g+='<text class="y2t" x="'+(xr+4)+'" y="'+(r1(f2(t))+3)+'">'+(+t.toPrecision(3)).toExponential(2)+'</text>';
+    const d='M'+y2pts.map(p=>r1(fx(p.x))+','+r1(f2(p.y))).join('L');
+    g+='<g class="y2"><path class="l" d="'+d+'"/>'+y2pts.map(p=>'<circle class="mk '+(p.cls||'')+'" data-h="'+p.key
+      +'" cx="'+r1(fx(p.x))+'" cy="'+r1(f2(p.y))+'" r="2.6"/>').join('')+'</g>';
   }
   return svgOpen(W,H)+g+'</svg>';
 }
@@ -511,7 +579,9 @@ const pendInner = (g, role) => g ? g.runs.filter(r=>r.solver==='cg' && !r.parent
 function renderLinear(g, active){
   const runs=linearRuns(g);
   if(!runs.length) return ['<div class="empty">no linear sampling in this iteration</div>', ''];
-  const html=runs.map((r,i)=>blk('c'+r.id,'linear','sample '+(i+1), cgStatus(r,active), cgMeta(r),
+  const n=nLatent();
+  const meta = r => cgMeta(r) + (n ? ' · ε '+fmtPct(linEps(r.points.at(-1).E, n)) : '');
+  const html=runs.map((r,i)=>blk('c'+r.id,'linear','sample '+(i+1), cgStatus(r,active), meta(r),
       r.recs.map(x=>line(x)).join(''), i===runs.length-1, r.provisional)).join('');
   const its=runs.reduce((a,r)=>a+r.points.length,0), ok=runs.filter(r=>cgOk(r.points.at(-1))).length;
   return [html, runs.length+' samples · '+ok+' ✓ · '+its+' CG its'];
@@ -531,7 +601,12 @@ function renderLinearViz(g, active){
     ...ord.map(r=>({key:key(r), cls:cls(r), pts:r.points.map(p=>[p.it, val(p)]), end:runEnd(r,active)}))];
   const w = Math.max(240, $('lin-main').clientWidth || 400);
   const lastP = runs.at(-1).points.at(-1);
-  $('lin-main').innerHTML = linePlot(mk(p=>p.dE),
+  const n = nLatent(), useEps = !!n && !vizOff.has('eps');
+  if(useEps){
+    const fl = epsFloor(n);                                        // below the floor: drawn at fl/2 (resolved)
+    $('lin-main').innerHTML = linePlot(mk(p=>{ const e=linEps(p.E, n); return e==null ? undefined : Math.max(e, fl/2); }),
+        [{y:fl, label:'noise floor '+fmtPct(fl)}], {w, h:170});
+  } else $('lin-main').innerHTML = linePlot(mk(p=>p.dE),
       lastP.absdelta>0 ? [{y:lastP.absdelta, label:'AbsDelta '+fmt(lastP.absdelta)}] : [], {w, h:170});
   if(runs.some(r=>r.points.some(p=>p.norm!=null))){
     const rn = runs.map(r=>r.points.at(-1).resnorm).filter(v=>v>0).at(-1);
@@ -543,16 +618,52 @@ function renderLinearViz(g, active){
   const h = runs.find(r=>key(r)===hoverKey);
   if(h){ const p=h.points.at(-1);
     $('lin-info').textContent = 'sample '+(runs.indexOf(h)+1)+' · '+p.it+' its · ΔE '+fmt(p.dE)+' / '+fmt(p.absdelta)
-      + ' · E '+(typeof p.E==='number' ? p.E.toPrecision(6) : '–');
-  } else $('lin-info').textContent = 'ΔE per CG iteration · dashed: AbsDelta target';
+      + ' · E '+(typeof p.E==='number' ? p.E.toPrecision(6) : '–') + (n ? ' · ε '+fmtPct(linEps(p.E, n)) : '');
+  } else $('lin-info').textContent = useEps
+      ? 'ε = √(2(E+n/2)/n) per CG iteration (1e-1 = 10 %), n = '+n.toLocaleString('en')+' · dashed: noise floor of E_min = −n/2'
+      : 'ΔE per CG iteration · dashed: AbsDelta target' + (n ? '' : ' · ε needs n: after the first prior report, or ?n= in the URL');
+}
+// n for ε: ?n=<latent size> in the URL, else the prior #dof of the latest report.
+const N_URL = +new URLSearchParams(location.search).get('n') || null;
+const nLatent = () => N_URL || latentDim(M.globals);
+
+// ---- reduced χ² per KL iteration (all iterations, independent of the selected one) ----
+function renderChiViz(gSel){
+  const ser=chiSeries(M.globals);
+  const en=M.globals.filter(g=>g.done && typeof g.E==='number').map(g=>({n:g.n, E:g.E}));   // KL energy per iteration
+  $('chi-viz').classList.toggle('hidden', !ser.length && !en.length);
+  if((!ser.length && !en.length) || vizOff.has('chi')) return;
+  const w = Math.max(240, ($('chi-viz').clientWidth||420)-20);
+  const nmax = Math.max(...ser.flatMap(e=>e.pts.map(p=>p.n)), ...en.map(p=>p.n));
+  const sk = i => 'x'+i, hlIdx = ser.findIndex((e,i)=>hoverKey===sk(i) || (hoverKey||'').startsWith(sk(i)+'_'));
+  const order = ser.map((e,i)=>i).sort((a,b)=>(a===hlIdx)-(b===hlIdx));
+  const series = order.map(i=>{ const e=ser[i], lik=e.kind==='lik';
+    return {key:sk(i), cls:[lik?'cur':'prior', i===hlIdx?'hl':''].join(' ').trim(), pts:e.pts.map(p=>[p.n, p.v]), end:null,
+      marks: lik ? e.pts.map(p=>({x:p.n, y:p.v, err:p.sd, key:sk(i)+'_'+p.n, cls:hoverKey===sk(i)+'_'+p.n?'hl':''})) : undefined}; });
+  $('chi-plot').innerHTML = linePlot(series, [{y:1, label:'χ² = 1'}],
+      {w, h:150, xdom:[0.5, Math.max(1, nmax)+0.5], bands: gSel ? [{x0:gSel.n, x1:gSel.n}] : [],
+       y2:{pts:en.map(p=>({x:p.n, y:p.E, key:'e_'+p.n, cls:hoverKey==='e_'+p.n?'hl':''}))}});
+  let info='reduced χ² per KL iteration (left, log) · bold: likelihood ± sample std · thin: prior components'
+         + ' · green: KL energy E (right, linear) · shaded: selected iteration';
+  const he = /^e_(\d+)$/.exec(hoverKey||'');
+  if(he){
+    const k=en.findIndex(p=>p.n===+he[1]), p=en[k], q=en[k-1];
+    info = 'KL energy · iteration '+p.n+' · E '+p.E.toPrecision(6)
+         + (q ? ' · ΔE vs previous '+(p.E-q.E>=0?'+':'')+(p.E-q.E).toPrecision(3) : '');
+  } else if(hlIdx>=0){
+    const e=ser[hlIdx], m=/_(\d+)$/.exec(hoverKey), p = m ? e.pts.find(q=>q.n===+m[1]) : e.pts.at(-1);
+    info = e.name+' · iteration '+p.n+' · χ² '+p.v+' ± '+p.sd+' · #dof '+p.dof
+         + (e.pts.length>1 ? ' · first '+e.pts[0].v : '');
+  }
+  $('chi-info').textContent = info;
 }
 
 // ---- Newton-CG panes (nonlinear sampling, KL) ----
 const NCG_OPTS = {
   nl: { stepKey:r=>'n'+r.id, runKey:r=>'n'+r.id, perSample:true, h:{main:110, cg:100, bars:50, sps:44},
-        defaultInfo:'one point per Newton step, samples laid end to end (alternate shading) · rings: orange = step shortened, red = line-search reset' },
+        defaultInfo:'one point per Newton step, samples laid end to end (alternate shading) · dots: purple = step, green = converged, red = stopped unconverged (iteration limit), hollow = running · rings: cyan = step shortened, red = line-search reset' },
   kl: { stepKey:(r,j)=>'s'+r.id+'_'+j, runKey:()=>null, perSample:false, h:{main:150, cg:130, bars:60},
-        defaultInfo:'one point per Newton step · grey dashed: previous global iteration · rings: orange = step shortened, red = line-search reset' }
+        defaultInfo:'one point per Newton step · grey dashed: previous global iteration · dots: orange = step, green = converged, red = stopped unconverged (iteration limit), hollow = running · rings: cyan = step shortened, red = line-search reset' }
 };
 function renderNcgViz(p, runs, pend, active, ghosts){
   $(p+'-viz').classList.toggle('hidden', !(runs.length || pend.length));
@@ -623,15 +734,18 @@ function render(){
   dirty=false; lastRender=performance.now();
   $('count').textContent = M.lines.length+' lines';
   renderGlobals();
-  for(const v of ['lin','nl','kl']){
+  for(const v of ['lin','nl','kl','chi']){
     $(v+'-viz').classList.toggle('off', vizOff.has(v));
     document.querySelector('.vt[data-v="'+v+'"]').classList.toggle('on', !vizOff.has(v));
   }
+  const epsBtn=document.querySelector('.vt[data-v="eps"]'), nEps=nLatent();
+  epsBtn.classList.toggle('on', !!nEps && !vizOff.has('eps')); epsBtn.disabled = !nEps;
   const g = M.globals[selected==null ? M.globals.length-1 : selected];
   if(g){
     const active = (!g.done && !M.ended) ? M.activeRun : null;
     const prevG = g.idx>0 ? M.globals[g.idx-1] : null;
     renderLinearViz(g, active);
+    renderChiViz(g);
     const rNl = renderNcgViz('nl', ncgRuns(g,'nonlinear'), pendInner(g,'nonlinear'), active, []);
     const rKl = renderNcgViz('kl', ncgRuns(g,'kl'), pendInner(g,'kl'), active, ncgRuns(prevG,'kl'));
     setPane('linear', ...renderLinear(g, active));
@@ -641,6 +755,7 @@ function render(){
     setPane('kl', klHtml, klMeta + flagMeta(rKl));
   }
   if(rawOpen) renderRaw();
+  for(const el of document.querySelectorAll('.tools .info')) el.title=el.textContent;   // full text when cut off
   if(pendingScroll){ const el=document.querySelector('.hd[data-k="'+pendingScroll+'"]'); if(el) el.scrollIntoView({block:'nearest'}); pendingScroll=null; }
 }
 function schedule(){

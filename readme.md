@@ -16,6 +16,21 @@ assigned to each line.
 
 **Requirements:** Python ≥ 3.8 (standard library only) and a browser.
 
+Try it out on a saved log file: 
+
+``python nifty_gui_01.py --open -- python replay_log.py path/to/run.log --delay 0.0``
+
+where path/to/run.log is a file containing stuff like this: 
+
+``OPTIMIZE_KL: Starting 0001
+device memory before sampling (iteration 1): allocated 0.8, peak 1.3 GB per device
+SL: Iteration 0 E:+1.2688e+08 ΔE:inf AbsDelta:1.0000e-06
+SL: Iteration 1 E:+2.6008e+07 ΔE:1.0087e+08 AbsDelta:1.0000e-06
+SL: Iteration 2 E:+1.2956e+07 ΔE:1.3052e+07 AbsDelta:1.0000e-06
+SL: Iteration 3 E:+3.7353e+06 ΔE:9.2208e+06 AbsDelta:1.0000e-06
+...``
+
+
 ## Files
 
 | File | Purpose |
@@ -29,7 +44,7 @@ assigned to each line.
 ## 1. Test with a saved log
 
 ```bash
-python nifty_gui_00.py --open -- python replay_log.py path/to/run.log --delay 0.05
+python nifty_gui_01.py --open -- python replay_log.py path/to/run.log --delay 0.0
 ```
 
 `--delay` is the number of seconds between lines.
@@ -40,7 +55,7 @@ in the browser and drag the log file onto the page.
 ## 2. Run a real inference (Python script)
 
 ```bash
-python nifty_gui_00.py --open -- python my_inference.py --any --script --args
+python nifty_gui_01.py --open -- python my_inference.py --any --script --args
 ```
 
 `nifty_gui_00.py` starts your script, forces unbuffered output, captures stdout and
